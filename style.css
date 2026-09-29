@@ -1,0 +1,756 @@
+:root {
+  --bg: #f4f2ed;
+  --surface: #fffdf9;
+  --surface-2: #f8f6f1;
+  --line: #e6e2d8;
+  --line-strong: #d4cfc2;
+
+  --ink: #23262b;
+  --ink-2: #5b5f66;
+  --ink-3: #6c6f75;
+
+  --accent: #3f6f4a;
+  --accent-ink: #fff;
+  --accent-soft: #e7efe5;
+
+  /* Estados das células */
+  --healthy: #4f8a5b;
+  --infected: #dcae4c;
+  --dead: #a8a59c;
+  --producer: #694a86;
+  --empty: #efece5;
+
+  --radius: 14px;
+  --radius-sm: 9px;
+  --shadow: 0 1px 2px rgba(60, 52, 36, .05), 0 6px 24px -10px rgba(60, 52, 36, .14);
+  --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* ==========================================================================
+   Base
+   ========================================================================== */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+main {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 36px 24px 48px;
+}
+
+/* ==========================================================================
+   Cabeçalho
+   ========================================================================== */
+header {
+  margin-bottom: 24px;
+  max-width: 760px;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 10px;
+}
+
+/* Três quadradinhos (verde, amarelo, roxo) desenhados com um único pseudo-elemento. */
+.eyebrow::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--healthy);
+  box-shadow: 10px 0 0 var(--infected), 20px 0 0 var(--producer);
+  margin-right: 22px;
+}
+
+h1 {
+  font-size: clamp(26px, 3.4vw, 38px);
+  line-height: 1.12;
+  letter-spacing: -.022em;
+  font-weight: 650;
+  margin: 0 0 8px;
+  text-wrap: balance;
+}
+
+header p {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: 15px;
+}
+
+/* ==========================================================================
+   Layout principal: grade à esquerda, painel à direita
+   ========================================================================== */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 380px;
+  grid-template-areas: "board panel";
+  gap: 12px;
+  align-items: start;
+}
+
+.board {
+  grid-area: board;
+}
+
+.panel {
+  grid-area: panel;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+/* ==========================================================================
+   Cartão da grade (status, canvas, legenda)
+   ========================================================================== */
+.board {
+  padding: 18px 18px 16px;
+}
+
+.board-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 14px;
+  font-weight: 550;
+  color: var(--ink);
+  min-height: 22px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Bolinha do status: cinza quando pausada, verde pulsando em execução. */
+.status::before {
+  content: "";
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--ink-3);
+  box-shadow: 0 0 0 4px rgba(138, 141, 146, .16);
+  flex: none;
+}
+
+.status.running::before {
+  background: var(--healthy);
+  box-shadow: 0 0 0 4px rgba(79, 138, 91, .2);
+  animation: pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  50% {
+    box-shadow: 0 0 0 7px rgba(79, 138, 91, .06);
+  }
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  background: var(--surface);
+  border-radius: 10px;
+  outline: none;
+}
+
+canvas:focus-visible {
+  box-shadow: 0 0 0 3px var(--surface), 0 0 0 5px var(--accent);
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin: 14px 2px 0;
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  display: inline-block;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .08);
+}
+
+/* ==========================================================================
+   Painel lateral e controles (botões, selects, inputs)
+   ========================================================================== */
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.section {
+  padding: 18px;
+}
+
+.section-title {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin: 0 0 12px;
+}
+
+.controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+button,
+select,
+input {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 550;
+  transition: background .18s, border-color .18s, transform .12s, opacity .18s;
+}
+
+button:hover:not(:disabled) {
+  background: var(--surface-2);
+  border-color: #c3bdae;
+}
+
+button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+button:disabled {
+  opacity: .4;
+  cursor: not-allowed;
+}
+
+#start {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+
+#start:hover:not(:disabled) {
+  background: #355f3f;
+  border-color: #355f3f;
+}
+
+button:focus-visible,
+select:focus-visible,
+input:focus-visible,
+summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.settings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.settings label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 12.5px;
+  font-weight: 550;
+  color: var(--ink-2);
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.settings select {
+  width: 100%;
+  min-width: 0;
+}
+
+select,
+input {
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 14px;
+  color: var(--ink);
+  transition: border-color .18s;
+}
+
+/* Seta do select desenhada em SVG (o nativo é removido com appearance:none). */
+select {
+  appearance: none;
+  padding-right: 30px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 4.5 6 7.5 9 4.5' fill='none' stroke='%235b5f66' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+}
+
+select:hover,
+input:hover {
+  border-color: #c3bdae;
+}
+
+select:disabled,
+input:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+/* ==========================================================================
+   Totais da população (preenchidos pelo JavaScript em renderTotals)
+   ========================================================================== */
+.stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.stat {
+  background: var(--surface-2);
+  border-radius: 10px;
+  padding: 9px 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat .k {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+
+.stat .k i {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex: none;
+}
+
+.stat .v {
+  font-size: 22px;
+  font-weight: 650;
+  letter-spacing: -.02em;
+  font-variant-numeric: tabular-nums;
+  margin-top: 2px;
+}
+
+.stat.wide {
+  grid-column: 1/-1;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  background: var(--accent-soft);
+}
+
+.stat.wide .v {
+  font-size: 26px;
+  color: var(--accent);
+}
+
+.rows {
+  margin-top: 12px;
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+  font-size: 13.5px;
+}
+
+.rows p {
+  display: flex;
+  justify-content: space-between;
+  margin: 4px 0;
+  color: var(--ink-2);
+}
+
+.rows p b {
+  color: var(--ink);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+
+/* ==========================================================================
+   Consulta de posição
+   ========================================================================== */
+#inspection {
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--ink-2);
+  min-height: 44px;
+  background: var(--surface-2);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ==========================================================================
+   Editor do cenário inicial (<details> recolhível)
+   ========================================================================== */
+details {
+  font-size: 14px;
+}
+
+summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  border-radius: 8px;
+}
+
+summary::-webkit-details-marker {
+  display: none;
+}
+
+/* Setinha que gira 180° quando o <details> abre. */
+summary::after {
+  content: "";
+  width: 14px;
+  height: 14px;
+  flex: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14'%3E%3Cpath d='M3.5 5.25 7 8.75l3.5-3.5' fill='none' stroke='%235b5f66' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/14px no-repeat;
+  transition: transform .2s;
+}
+
+details[open] > summary::after {
+  transform: rotate(180deg);
+}
+
+.editor {
+  padding: 16px 18px;
+}
+
+.sum-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sum-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 650;
+  font-size: 15px;
+}
+
+.sum-sub {
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.badge.locked {
+  background: var(--surface-2);
+  color: var(--ink-3);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.editor-body {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.editor-body p {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: 13.5px;
+}
+
+.field-row {
+  display: flex;
+  gap: 10px;
+}
+
+.field-row label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 12.5px;
+  font-weight: 550;
+  color: var(--ink-2);
+  flex: 1;
+  min-width: 0;
+}
+
+.field-row select {
+  width: 100%;
+  min-width: 0;
+}
+
+.field-row label.narrow {
+  flex: 0 0 96px;
+}
+
+.editor input {
+  width: 100%;
+}
+
+.unit-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 400;
+  font-size: 13.5px;
+}
+
+.unit-input input {
+  width: 64px;
+  flex: none;
+}
+
+.unit-input span {
+  font-size: 12.5px;
+  color: var(--ink-2);
+  line-height: 1.2;
+}
+
+.editor button {
+  font-size: 13.5px;
+  padding: 9px 12px;
+}
+
+button.full {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+button.full:hover:not(:disabled) {
+  background: var(--accent-soft);
+}
+
+/* Parâmetros do modelo: grupos com título e linhas "rótulo ··· [valor unidade]". */
+.params {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.param-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.param-group + .param-group {
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.param-group-title {
+  font-size: 11.5px;
+  font-weight: 650;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.param-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.param-label {
+  font-size: 14px;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+/* Campo com a unidade "dentro" da mesma caixa: [ 12   % ] */
+.param-input {
+  display: flex;
+  align-items: center;
+  flex: none;
+  width: 150px;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  transition: border-color .18s;
+}
+
+.param-input:hover {
+  border-color: #c3bdae;
+}
+
+.param-input:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.editor .param-input input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  padding: 7px 4px 7px 10px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  box-shadow: none;
+  outline: none;
+}
+
+.param-unit {
+  flex: none;
+  padding-right: 10px;
+  font-size: 12.5px;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+
+.param-input:has(input:disabled) {
+  opacity: .55;
+}
+
+.editor .param-input input:disabled {
+  opacity: 1;
+}
+
+.btn-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.editor hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 2px 0;
+}
+
+.editor-note {
+  color: var(--ink-3) !important;
+  font-size: 12.5px !important;
+  line-height: 1.5;
+}
+
+.legend[hidden] {
+  display: none;
+}
+
+.legend-note {
+  flex-basis: 100%;
+  font-size: 12.5px;
+  color: var(--ink-3);
+}
+
+footer {
+  color: var(--ink-3);
+  font-size: 12px;
+  margin-top: 22px;
+  text-align: center;
+}
+
+/* ==========================================================================
+   Responsivo e acessibilidade
+   ≤ 980px: uma coluna, painel em 2 colunas · ≤ 640px: tudo empilhado
+   ========================================================================== */
+@media (max-width: 980px) {
+  .layout {
+    grid-template-columns: 1fr;
+    grid-template-areas: "board" "panel";
+  }
+
+  .panel {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .panel > .editor {
+    grid-column: 1/-1;
+  }
+}
+
+@media (max-width: 640px) {
+  main {
+    padding: 22px 14px 32px;
+  }
+
+  .panel {
+    display: flex;
+  }
+
+  .board {
+    padding: 10px;
+  }
+
+  .section {
+    padding: 14px;
+  }
+
+  .stat .v {
+    font-size: 19px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

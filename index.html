@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Disseminação de fungo em formigas</title>
+  <meta name="description" content="Autômato celular exploratório da disseminação de fungo entre formigas numa grade 30 × 30.">
+  <!-- Ícone: quatro quadrados com as cores dos estados (saudável, infectada, morta, produtora). -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23f3f1ec'/%3E%3Crect x='6' y='6' width='9' height='9' rx='2' fill='%234f8a5b'/%3E%3Crect x='17' y='6' width='9' height='9' rx='2' fill='%23dcae4c'/%3E%3Crect x='6' y='17' width='9' height='9' rx='2' fill='%23a8a59c'/%3E%3Crect x='17' y='17' width='9' height='9' rx='2' fill='%23694a86'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+  <!-- O código está dividido por funcionalidade; a ordem de carregamento importa. -->
+  <script src="js/1-parametros.js" defer></script>
+  <script src="js/2-grade.js" defer></script>
+  <script src="js/3-simulacao.js" defer></script>
+  <script src="js/4-desenho.js" defer></script>
+  <script src="js/5-editor.js" defer></script>
+  <script src="js/6-controles.js" defer></script>
+</head>
+
+<body>
+  <main>
+
+    <!-- ===================== Cabeçalho ===================== -->
+    <header>
+      <div class="eyebrow">Autômato celular · MVP</div>
+      <h1>Disseminação de fungo em formigas</h1>
+      <p>Grade 30 × 30 · 900 posições · uma formiga por posição</p>
+    </header>
+
+    <div class="layout">
+
+      <!-- ===================== Grade (canvas) ===================== -->
+      <section class="card board" aria-label="Grade da simulação">
+        <div class="board-top">
+          <!-- Texto preenchido por renderStatus(): "Geração N · Em execução/Pausada" -->
+          <div class="status" id="status" role="status" aria-live="polite"></div>
+        </div>
+        <!-- Resolução interna 960×960; o CSS escala para a largura do cartão. -->
+        <canvas id="grid" width="960" height="960" tabindex="0" aria-label="Grade 30 por 30. Clique ou use as setas para consultar uma posição. Na edição inicial, Enter aplica a ação selecionada."></canvas>
+        <div class="legend" id="legend-infection">
+          <span><i class="swatch" style="background:var(--empty)"></i>Vazia</span>
+          <span><i class="swatch" style="background:var(--healthy)"></i>Saudáveis</span>
+          <span><i class="swatch" style="background:var(--infected)"></i>Infectadas</span>
+          <span><i class="swatch" style="background:var(--dead)"></i>Mortas</span>
+          <span><i class="swatch" style="background:var(--producer)"></i>Produtoras de esporos</span>
+        </div>
+      </section>
+
+      <!-- ===================== Painel lateral ===================== -->
+      <aside class="panel">
+
+        <!-- Editor do cenário inicial (só funciona na geração 0 e com a simulação parada) -->
+        <details class="card editor" id="editor">
+          <summary>
+            <span class="sum-text">
+              <span class="sum-title">Cenário inicial <span class="badge" id="editor-badge">Editável</span></span>
+              <span class="sum-sub">Monte a grade antes de iniciar</span>
+            </span>
+          </summary>
+          <div class="editor-body">
+            <p>Escolha a ação e <strong>clique ou arraste</strong> na grade.</p>
+            <div class="field-row">
+              <label>Ação
+                <select id="edit-mode">
+                  <option value="empty" selected>Esvaziar posição</option>
+                  <option value="healthy">Colocar saudável</option>
+                  <option value="infected">Colocar infectada</option>
+                  <option value="dead">Colocar morta</option>
+                  <option value="producer">Colocar produtora de esporos</option>
+                </select>
+              </label>
+            </div>
+            <button id="fill-grid" class="full">Aplicar na grade inteira (30 × 30)</button>
+            <button id="default-scenario">Voltar ao cenário padrão</button>
+            <p class="editor-note" id="editor-note" hidden></p>
+          </div>
+        </details>
+
+        <!-- Parâmetros do modelo (campos gerados por buildParamFields, a partir de PARAMETROS) -->
+        <details class="card editor" id="params-card" open>
+          <summary>
+            <span class="sum-text">
+              <span class="sum-title">Parâmetros do modelo <span class="badge" id="params-badge">Editável</span></span>
+              <span class="sum-sub">Chances e tempos usados nas regras</span>
+            </span>
+          </summary>
+          <div class="editor-body">
+            <div class="params" id="params"></div>
+            <p class="editor-note" id="params-note" hidden></p>
+          </div>
+        </details>
+
+        <!-- Controles de execução -->
+        <section class="card section" aria-label="Controles">
+          <h2 class="section-title">Execução</h2>
+          <div class="controls">
+            <button id="start">▶ Iniciar</button>
+            <button id="pause" disabled>Pausar</button>
+            <button id="step">Próxima geração</button>
+            <button id="reset">Reiniciar</button>
+          </div>
+          <div class="settings">
+            <label>Velocidade
+              <!-- value = intervalo em milissegundos entre gerações -->
+              <select id="speed">
+                <option value="1000">1 geração/s</option>
+                <option value="250" selected>4 gerações/s</option>
+                <option value="100">10 gerações/s</option>
+              </select>
+            </label>
+          </div>
+        </section>
+
+        <!-- Totais (conteúdo gerado por renderTotals) -->
+        <section class="card section" aria-label="Totais">
+          <h2 class="section-title">População</h2>
+          <div class="totals" id="totals"></div>
+        </section>
+
+      </aside>
+
+    </div>
+
+    <footer>MVP acadêmico · HTML, CSS e JavaScript · Simulação exploratória</footer>
+  </main>
+</body>
+
+</html>
